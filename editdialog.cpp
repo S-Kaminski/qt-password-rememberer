@@ -22,5 +22,5 @@ void editdialog::receiveCrdentials(QString website, QString login, QString passw
     ui->websiteEdit->setText(website);
     ui->loginEdit->setText(login);
     ui->passwordEdit->setText(password);
-    qDebug() << "Holy shit! Slots are op ==> " + website;
+    qDebug() << "signal from mainwindow " + website;
 }
