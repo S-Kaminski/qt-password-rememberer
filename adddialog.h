@@ -17,8 +17,14 @@ public:
 
 private:
     Ui::adddialog *ui;
+public slots:
 private slots:
     void generatePassword();
+    void saveCredentials();
+
+signals:
+    void sendData(QString,QString,QString);
+
 };
 
 #endif // ADDDIALOG_H

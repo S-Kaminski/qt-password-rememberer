@@ -17,6 +17,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 public slots:
+    void getNewCredentials(QString, QString,QString);
 private slots:
     void addNewCredentials();
     void deleteCredentials();
@@ -28,8 +29,11 @@ private slots:
     void togglePasswords(int checked);
     void aboutAuthor();
     void editContent();
+    void deleteAllButton();
+    void getChanges(int,QString,QString,QString);
+
 signals:
-    void sendData(QString,QString,QString);
+    void sendData(int, QString, QString, QString);
 private:
     Ui::MainWindow *ui;
     editdialog *editui;

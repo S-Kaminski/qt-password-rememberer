@@ -1,6 +1,5 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
-
 #include <QFileDialog>
 #include <QtCore>
 #include <iostream>
@@ -24,6 +23,7 @@ struct Password
 QString mainPassword;
 QList<Password> list;
 editdialog *edit;
+adddialog *add;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -33,20 +33,25 @@ MainWindow::MainWindow(QWidget *parent)
     ui->toogleVisibility->setCheckable(true);
     ui->tableWidget->setColumnWidth(0,143);
     ui->tableWidget->setColumnWidth(1,143);
-    ui->tableWidget->setColumnWidth(2,143);
+    ui->tableWidget->setColumnWidth(2,250);
     ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->tableWidget->setSelectionBehavior( QAbstractItemView::SelectRows );
     ui->tableWidget->setSelectionMode( QAbstractItemView::SingleSelection );
+    loadData();
     //connect(sender, SIGNAL(destroyed()), this, SLOT(objectDestroyed()));
     edit = new editdialog(this);
+    add = new adddialog(this);
     connect(ui->toogleVisibility, SIGNAL(stateChanged(int)), this, SLOT(togglePasswords(int)));
     connect(ui->loadButton, SIGNAL(clicked()), this, SLOT(loadData()));
     connect(ui->saveButton, SIGNAL(clicked()), this, SLOT(saveData()));
     connect(ui->editButton, SIGNAL(clicked()), this, SLOT(editContent()));
-    connect(this, SIGNAL(sendData(QString,QString,QString)), edit, SLOT(receiveCrdentials(QString,QString,QString))); //edit
+    connect(this, SIGNAL(sendData(int,QString,QString,QString)), edit, SLOT(receiveCrdentials(int,QString,QString,QString))); //edit
     connect(ui->addButton, SIGNAL(clicked()), this, SLOT(addNewCredentials()));
     connect(ui->deleteButton, SIGNAL(clicked()), this, SLOT(deleteCredentials()));
+    connect(ui->deleteAllButton, SIGNAL(clicked()), this, SLOT(deleteAllButton()));
     connect(ui->aboutAuthor, SIGNAL(clicked()), this, SLOT(aboutAuthor()));
+    connect(add, SIGNAL(sendData(QString,QString,QString)), this, SLOT(getNewCredentials(QString,QString,QString)));
+    connect(edit, SIGNAL(sendChanges(int,QString,QString,QString)), this, SLOT(getChanges(int,QString,QString,QString)));
 }
 
 MainWindow::~MainWindow()
@@ -54,10 +59,36 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::getChanges(int _index, QString _website, QString _login, QString _password)
+{
+    qDebug() << "Changes should be received, index: " << _index;
+    struct Password changedCredentials = {_website, _login, _password};
+    list[_index] = changedCredentials;
+    supplyTable();
+}
 void MainWindow::addNewCredentials()
 {
-    adddialog *add = new adddialog(this);
     add->show();
+}
+
+void MainWindow::getNewCredentials(QString _website, QString _login, QString _password)
+{
+    qDebug() << "Received new credentials from add-dialog";
+    struct Password passwd = { _website, _login, _password };
+    list.append(passwd);
+    supplyTable();
+}
+
+void MainWindow::deleteAllButton()
+{
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Remove ALL credentials", "Are you sure you want to delete ALL credentials? This action does not make automatically impact on file; you can re-load passwords until you perform an action (add, edit or delete) which auto saves it.",QMessageBox::Yes|QMessageBox::Cancel);
+    if(reply == QMessageBox::Yes)
+    {
+        ui->tableWidget->setRowCount(0); // clear tableWidget
+        updateList();
+    }
+
 }
 
 void MainWindow::deleteCredentials()
@@ -68,11 +99,17 @@ void MainWindow::deleteCredentials()
     qDebug() << "Selected count => " << selected.count();
     if(selected.count() > 0)
     {
-        int row = selected.constFirst().row();
-        qDebug() << "from deleteCredentials row: "<< row;
-        ui->tableWidget->removeRow(row);
-        updateList();
-        if(toogled) ui->toogleVisibility->setChecked(true);
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "Remove credentials", "Are you sure you want to delete this credentials? This acction is irreversible.",QMessageBox::Yes|QMessageBox::Cancel);
+        if(reply == QMessageBox::Yes)
+        {
+            int row = selected.constFirst().row();
+            qDebug() << "from deleteCredentials row: "<< row;
+            ui->tableWidget->removeRow(row);
+            updateList();
+            if(toogled) ui->toogleVisibility->setChecked(true);
+        }
+
     }
 }
 void MainWindow::loadData()
@@ -135,13 +172,6 @@ void MainWindow::loadData()
 
 void MainWindow::updateList()
 {
-
-//    int passwdHidden = ui->toogleVisibility->checkState();
-//    if(passwdHidden == 2)
-//    {
-//        ui->toogleVisibility->setChecked(false);
-//        qDebug() << "call from update";
-//    }
     int rows = ui->tableWidget->rowCount();
     list.clear();
     qDebug() << "clear list!";
@@ -151,11 +181,6 @@ void MainWindow::updateList()
         list.append(credential);
         qDebug() << "Append to list!";
     }
-//    if(passwdHidden == 2)
-//    {
-//        ui->toogleVisibility->setCheckState(Qt::CheckState(2));
-//    }
-//    supplyTable();
 }
 
 void MainWindow::supplyTable()
@@ -221,7 +246,7 @@ void MainWindow::saveData()
         mainDocument.setObject(passwordsFile);
         QByteArray bytes = mainDocument.toJson(QJsonDocument::Indented);
         qDebug() << "NEW DOCUMENT" << bytes;
-        QFile file("C://Users//User//Documents//PasswordsRememberer//passwords2.json");
+        QFile file("C://Users//User//Documents//PasswordsRememberer//passwords.json");
         if( file.open( QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate ) )
         {
             QTextStream iStream(&file);
@@ -263,7 +288,6 @@ void MainWindow::togglePasswords(int checked)
 
 }
 
-
 void MainWindow::aboutAuthor()
 {
     QMessageBox::information(this, tr("About author"), tr("Application by Szymon Kamiński."));
@@ -271,15 +295,16 @@ void MainWindow::aboutAuthor()
 
 void MainWindow::editContent()
 {
-    QItemSelectionModel *select = ui->tableWidget->selectionModel();
-    if(select->hasSelection())
+    auto selected = ui->tableWidget->selectionModel()->selectedRows();
+    qDebug() << "Selected count => " << selected.count();
+    if(selected.count() > 0)
     {
-        emit this->sendData("String1","QString2","QString3");
-        edit->show();
-        //edit->sendInfo("Alo","Dwa","Trzy");
-        //edit = new editdialog(this);
-        //edit -> show();
+        int row = selected.constFirst().row();
+        qDebug() << "from editContent // row: "<< row;
+        //ui->tableWidget->removeRow(row);
+        struct Password editable = list.at(row);
+        emit this->sendData(row, editable.website, editable.login, editable.password);
+        edit->show();// updateList();
     }
-
 }
 

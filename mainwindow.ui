@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>602</width>
-    <height>473</height>
+    <width>715</width>
+    <height>489</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Password Rememberer</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QWidget" name="verticalLayoutWidget">
@@ -19,8 +19,8 @@
      <rect>
       <x>9</x>
       <y>9</y>
-      <width>581</width>
-      <height>421</height>
+      <width>691</width>
+      <height>431</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -29,7 +29,7 @@
        <item>
         <widget class="QPushButton" name="loadButton">
          <property name="text">
-          <string>Load passwords</string>
+          <string>Re-load passwords</string>
          </property>
         </widget>
        </item>
@@ -91,21 +91,21 @@
          <item>
           <widget class="QPushButton" name="addButton">
            <property name="text">
-            <string>Add new credentials</string>
+            <string>Add new</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="editButton">
            <property name="text">
-            <string>Edit existing credentials</string>
+            <string>Edit existing</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="deleteButton">
            <property name="text">
-            <string>Delete existing credentials</string>
+            <string>Delete existing</string>
            </property>
           </widget>
          </item>
@@ -122,12 +122,32 @@
            </property>
           </spacer>
          </item>
+         <item>
+          <widget class="QPushButton" name="deleteAllButton">
+           <property name="text">
+            <string>Delete all</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
       </layout>
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <item>
+        <spacer name="horizontalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
        <item>
         <widget class="QPushButton" name="aboutAuthor">
          <property name="text">
@@ -158,7 +178,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>602</width>
+     <width>715</width>
      <height>21</height>
     </rect>
    </property>

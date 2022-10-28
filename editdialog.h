@@ -18,9 +18,12 @@ public:
 private:
     Ui::editdialog *ui;
 public slots:
-    void receiveCrdentials(QString, QString, QString);
+    void receiveCrdentials(int, QString, QString, QString);
+    void cancelChanges();
+    void saveChanges();
 private slots:
-    void test();
+signals:
+    void sendChanges(int,QString,QString,QString);
 };
 
 #endif // EDITDIALOG_H
